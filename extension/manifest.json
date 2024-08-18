@@ -1,0 +1,31 @@
+{
+  "name": "naidiZakupku",
+  "description": "Маленький помощник в больших закупках",
+  "version": "1.1",
+  "manifest_version": 3,
+  "permissions": [
+    "storage"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "host_permissions": [
+    "https://zakupki.gov.ru/*",
+    "*://*/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://zakupki.gov.ru/*"
+      ],
+      "js": [
+        "application.js"
+      ],
+      "type": "module"
+    }
+  ]
+}
