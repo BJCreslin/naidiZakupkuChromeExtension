@@ -1,4 +1,5 @@
-import {sendCode} from './api';
+import {sendCodeAndReceiveToken} from './api';
+import {saveToken} from './localStorage';
 
 const SERVER_URL = "http://localhost:9000/";
 const POST_PROCUREMENT_URL = SERVER_URL + "api/chromeExtension/v1/procurement";
@@ -26,12 +27,22 @@ chrome.runtime.onMessage.addListener(
  * @param sendResponse
  * @returns {undefined}
  */
-function loginCodeHandler(request, sendResponse) {
+async function loginCodeHandler(request, sendResponse) {
     debugger;
     const numberTgCode =
         {numberCode: request.data};
-    sendCode(numberTgCode);
-    return true;
+    sendCodeAndReceiveToken(numberTgCode)
+        .then((data) => {
+            saveToken(data);
+            sendResponse(
+                {result: true});
+        })
+        .catch(error => {
+            console.log('Ошибка при авторизации: ', error);
+            sendResponse(
+                {result: false}
+            );
+        });
 }
 
 /**
