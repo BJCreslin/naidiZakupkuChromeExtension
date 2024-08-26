@@ -2,16 +2,22 @@ import {getToken} from './localStorage'
 
 const SERVER_URL = "http://localhost:9000/";
 const CODE_LOGIN_URL = SERVER_URL + "api/chromeExtension/v1/login";
+const POST_PROCUREMENT_URL = SERVER_URL + "api/chromeExtension/v1/procurement";
 
 /**
  * Запрос на авторизацию с помощью телеграмм кода
- * @param numberTgCode - объект с данными для авторизации по телеграмм коду
  * @returns {Promise<object>}
+ * @param code код полученный от телеграмма
  */
-export async function sendCodeAndReceiveToken(numberTgCode) {
+export async function sendCodeAndReceiveToken(code) {
+    const numberTgCode =
+        {numberCode: code};
     return sendPostRequest(CODE_LOGIN_URL, numberTgCode);
 }
 
+export async function sendProcurement(procurement){
+    return sendPostRequest(POST_PROCUREMENT_URL, procurement);
+}
 
 async function sendPostRequest(url, body) {
     try {
@@ -53,7 +59,7 @@ function createHeaders() {
     function addBearerToken() {
         const token = getToken();
         if (token && token.length > 0) {
-            myHeaders.append('Authorization', 'Bearer' + token);
+            myHeaders.append('Authorization', 'Bearer_' + token);
         }
     }
 
