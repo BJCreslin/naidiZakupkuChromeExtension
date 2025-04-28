@@ -1,24 +1,34 @@
-import {getToken} from './localStorage'
+import {getToken, removeToken} from './localStorage';
 
 const SERVER_URL = "http://localhost:9000/";
 const CODE_LOGIN_URL = SERVER_URL + "api/chromeExtension/v1/login";
 const POST_PROCUREMENT_URL = SERVER_URL + "api/chromeExtension/v1/procurement";
 
 /**
- * Запрос на авторизацию с помощью телеграмм кода
+ * Отправляет код авторизации для получения токена.
+ * @param {string} code - Код, полученный из Telegram.
  * @returns {Promise<object>}
- * @param code код полученный от телеграмма
  */
 export async function sendCodeAndReceiveToken(code) {
-    const numberTgCode =
-        {numberCode: code};
-    return sendPostRequest(CODE_LOGIN_URL, numberTgCode);
+    const payload = {numberCode: code};
+    return sendPostRequest(CODE_LOGIN_URL, payload);
 }
 
-export async function sendProcurement(procurement){
+/**
+ * Отправляет данные о закупке на сервер.
+ * @param {object} procurement - Данные о закупке.
+ * @returns {Promise<object>}
+ */
+export async function sendProcurement(procurement) {
     return sendPostRequest(POST_PROCUREMENT_URL, procurement);
 }
 
+/**
+ * Выполняет POST-запрос к серверу.
+ * @param {string} url - Адрес запроса.
+ * @param {object} body - Тело запроса.
+ * @returns {Promise<object>}
+ */
 async function sendPostRequest(url, body) {
     try {
         const response = await fetch(url, {
@@ -28,44 +38,49 @@ async function sendPostRequest(url, body) {
         });
 
         if (!response.ok) {
-            throw new Error('Response failed: ' + response.status + ' (' + response.statusText + ')');
+            if (response.status === 401) {
+                console.warn('Неавторизованный доступ. Токен будет удалён.');
+                removeToken();
+                // При необходимости можно добавить перенаправление:
+                // window.location.href = '/login.html';
+            }
+            throw new Error(`Ошибка ответа: ${response.status} (${response.statusText})`);
         }
 
         const text = await response.text();
 
         if (text.trim() === "") {
-            throw new Error('Пустой ответ');
+            throw new Error('Пустой ответ от сервера');
         }
 
         try {
             const data = JSON.parse(text);
-            console.log('Полученные данные: ', data);
+            console.log('Полученные данные:', data);
             return data;
         } catch (error) {
             throw new Error('Ошибка парсинга JSON: ' + text);
         }
 
     } catch (error) {
-        console.error('Ошибка при отправке запроса: ', error);
+        console.error('Ошибка при отправке запроса:', error);
         throw error;
     }
 }
 
 /**
- * Создает заголовки
+ * Создает заголовки для запроса.
+ * @returns {Headers}
  */
 function createHeaders() {
+    const headers = new Headers({
+        'Content-Type': 'application/json; charset=utf-8',
+        'Accept': 'application/json'
+    });
 
-    function addBearerToken() {
-        const token = getToken();
-        if (token && token.length > 0) {
-            myHeaders.append('Authorization', 'Bearer_' + token);
-        }
+    const token = getToken();
+    if (token) {
+        headers.append('Authorization', 'Bearer ' + token);
     }
 
-    let myHeaders = new Headers();
-    myHeaders.append('Content-Type', 'application/json; charset=utf-8');
-    myHeaders.append('Accept', 'application/json');
-    addBearerToken();
-    return myHeaders;
+    return headers;
 }

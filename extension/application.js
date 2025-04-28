@@ -50,7 +50,7 @@ class ProcurementParserInterface {
 
     keepOnlyNumbersAndDelimiters(input) {
         // Разрешенные символы: цифры, точки и запятые
-        const regex = /[^0-9.,]/g;
+        const regex = /[^0-9.,\s]/g;
 
         // Заменить все символы, которые не соответствуют регулярному выражению, на пустую строку
         const result = input.replace(regex, '');
@@ -93,6 +93,7 @@ class ProcurementParser223 extends ProcurementParserInterface {
 }
 
 
+
 let parser;
 debugger;
 if (URL.startsWith("https://zakupki.gov.ru/epz/order/notice/notice223")) {
@@ -112,40 +113,43 @@ if (parser !== undefined && parser !== null) {
 
 function addCss(css) {
     const head = document.getElementsByTagName('head')[0];
-    const s = document.createElement('style');
-    s.setAttribute('typef', 'text/css');
-    s.setAttribute('integrity', 'BOOTSTRAP_INTEGRITY');
-    s.setAttribute('crossOrigin', 'zakupki.gov.ru');
-    s.appendChild(document.createTextNode(css));
+    const s = document.createElement('link');
+    s.setAttribute('rel', 'stylesheet');
+    s.setAttribute('href', css);
+    s.setAttribute('integrity', BOOTSTRAP_INTEGRITY);
+    s.setAttribute('crossOrigin', 'anonymous');
     head.appendChild(s);
 }
 
 function insertButton(className) {
     let buttonPlace = document.getElementsByClassName(className)[0];
-    let buttonToMHelper = document.createElement("input");
-    buttonToMHelper.type = "button";
-    buttonToMHelper.setAttribute("class", BUTTON_CLASS);
-    buttonToMHelper.setAttribute("style", "color: white; background-color:grey; border:2px solid black; padding: 12px 16px; font-size:20px");
-    buttonToMHelper.value = BUTTON_NAME;
-    buttonToMHelper.onclick = function () {
-        chrome.runtime.sendMessage(
-            {
-                destination: "procurementSender",
-                data: dataAboutProcurement
-            },
-            function (response) {
-                console.log(response);
-            })
-    };
-    buttonPlace.appendChild(buttonToMHelper);
+    if (!buttonPlace.querySelector("input[type=button]")) { // Проверяем, нет ли кнопки
+        let buttonToMHelper = document.createElement("input");
+        buttonToMHelper.type = "button";
+        buttonToMHelper.setAttribute("class", BUTTON_CLASS);
+        buttonToMHelper.setAttribute("style", "color: white; background-color:grey; border:2px solid black; padding: 12px 16px; font-size:20px");
+        buttonToMHelper.value = BUTTON_NAME;
+        buttonToMHelper.onclick = function () {
+            chrome.runtime.sendMessage(
+                {
+                    destination: "procurementSender",
+                    data: dataAboutProcurement
+                },
+                function (response) {
+                    console.log(response);
+                })
+        };
+        buttonPlace.appendChild(buttonToMHelper);
+    }
 }
 
 function fillProcurementWith615And44() {
-    function getLawNumber() {
-        return document.body.getElementsByClassName("cardMainInfo__title d-flex text-truncate")[0].innerText.split("\n")[0];
+    const lawNumberElement = document.body.getElementsByClassName("cardMainInfo__title d-flex text-truncate")[0];
+    if (lawNumberElement) {
+        dataAboutProcurement.federalLawNumber = lawNumberElement.innerText.split("\n")[0];
+    } else {
+        dataAboutProcurement.federalLawNumber = "Не найдено";
     }
-
-    dataAboutProcurement.federalLawNumber = getLawNumber();
     dataAboutProcurement.linkOnPlacement = URL;
 }
 

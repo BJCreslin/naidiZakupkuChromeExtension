@@ -9,10 +9,12 @@ chrome.runtime.onMessage.addListener(
         console.log('Значение переменной: ', request)
 
         if (request.destination === "procurementSender") {
-            return senderHandler(request, sendResponse);
+            senderHandler(request, sendResponse);
+            return true;
         }
         if (request.destination === "loginCode") {
-            return loginCodeHandler(request, sendResponse);
+            loginCodeHandler(request, sendResponse);
+            return true;
         }
     }
 );
@@ -24,19 +26,14 @@ chrome.runtime.onMessage.addListener(
  * @returns {undefined}
  */
 async function loginCodeHandler(request, sendResponse) {
-    debugger;
-    sendCodeAndReceiveToken(request.data)
-        .then((data) => {
-            saveToken(data);
-            sendResponse(
-                {result: true});
-        })
-        .catch(error => {
-            console.log('Ошибка при авторизации: ', error);
-            sendResponse(
-                {result: false}
-            );
-        });
+    try {
+        const data = await sendCodeAndReceiveToken(request.data);
+        saveToken(data);
+        sendResponse({result: true});
+    } catch (error) {
+        console.log('Ошибка при авторизации: ', error);
+        sendResponse({result: false});
+    }
 }
 
 /**
