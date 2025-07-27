@@ -13,6 +13,21 @@ const dataAboutProcurement = {
     timeZone: "",
 }
 
+/**
+ * Безопасно получает текст элемента
+ * @param {string} selector - CSS селектор
+ * @returns {string} - Текст элемента или пустая строка
+ */
+function safeGetText(selector) {
+    try {
+        const element = document.querySelector(selector);
+        return element?.innerText?.trim() || "";
+    } catch (error) {
+        console.warn(`Не удалось найти элемент: ${selector}`, error);
+        return "";
+    }
+}
+
 class ProcurementParserInterface {
     constructor() {
         if (new.target === ProcurementParserInterface) {
@@ -39,23 +54,23 @@ class ProcurementParserInterface {
     }
 
     parse() {
-        dataAboutProcurement.federalLawNumber = this.getFederalLawNumber();
-        dataAboutProcurement.linkOnPlacement = URL;
-        dataAboutProcurement.registryNumber = this.getRegistryNumber();
-        dataAboutProcurement.name = this.getName();
-        dataAboutProcurement.publisher = this.getPublisher();
-        dataAboutProcurement.price = this.getPrice();
-        dataAboutProcurement.timeZone = this.getTimeZone();
+        try {
+            dataAboutProcurement.federalLawNumber = this.getFederalLawNumber();
+            dataAboutProcurement.linkOnPlacement = URL;
+            dataAboutProcurement.registryNumber = this.getRegistryNumber();
+            dataAboutProcurement.name = this.getName();
+            dataAboutProcurement.publisher = this.getPublisher();
+            dataAboutProcurement.price = this.getPrice();
+            dataAboutProcurement.timeZone = this.getTimeZone();
+        } catch (error) {
+            console.error('Ошибка при парсинге закупки:', error);
+        }
     }
 
     keepOnlyNumbersAndDelimiters(input) {
-        // Разрешенные символы: цифры, точки и запятые
+        if (!input || typeof input !== 'string') return '';
         const regex = /[^0-9.,\s]/g;
-
-        // Заменить все символы, которые не соответствуют регулярному выражению, на пустую строку
-        const result = input.replace(regex, '');
-
-        return result;
+        return input.replace(regex, '');
     };
 };
 
@@ -70,32 +85,30 @@ class ProcurementParser223 extends ProcurementParserInterface {
     }
 
     getRegistryNumber() {
-        const registryNumber = document.querySelector("body > div.cardWrapper.outerWrapper > div > div.cardHeaderBlock > div:nth-child(3) > div.search-results.item > div > div > div > div.col-6.pr-0.mr-21px > div.registry-entry__header > div.col.d-flex.registry-entry__header-mid.align-headers-center.w-space-inherit.p-0 > div.registry-entry__header-mid__number").innerText;
+        const registryNumber = safeGetText("body > div.cardWrapper.outerWrapper > div > div.cardHeaderBlock > div:nth-child(3) > div.search-results.item > div > div > div > div.col-6.pr-0.mr-21px > div.registry-entry__header > div.col.d-flex.registry-entry__header-mid.align-headers-center.w-space-inherit.p-0 > div.registry-entry__header-mid__number");
         return registryNumber.replace("№", "").trim();
     }
 
     getName() {
-        return document.querySelector("body > div.cardWrapper.outerWrapper > div > div.cardHeaderBlock > div:nth-child(3) > div.search-results.item > div > div > div > div.col-6.pr-0.mr-21px > div.registry-entry__body > div:nth-child(1) > div.registry-entry__body-value").innerText;
+        return safeGetText("body > div.cardWrapper.outerWrapper > div > div.cardHeaderBlock > div:nth-child(3) > div.search-results.item > div > div > div > div.col-6.pr-0.mr-21px > div.registry-entry__body > div:nth-child(1) > div.registry-entry__body-value");
     }
 
     getPublisher() {
-        return document.querySelector("body > div.cardWrapper.outerWrapper > div > div.cardHeaderBlock > div:nth-child(3) > div.search-results.item > div > div > div > div.col-6.pr-0.mr-21px > div.registry-entry__body > div:nth-child(2) > div.registry-entry__body-value > a").innerText;
+        return safeGetText("body > div.cardWrapper.outerWrapper > div > div.cardHeaderBlock > div:nth-child(3) > div.search-results.item > div > div > div > div.col-6.pr-0.mr-21px > div.registry-entry__body > div:nth-child(2) > div.registry-entry__body-value > a");
     }
 
     getPrice() {
-        const price = document.querySelector("body > div.cardWrapper.outerWrapper > div > div.cardHeaderBlock > div:nth-child(3) > div.search-results.item > div > div > div > div:nth-child(2) > div.price-block > div.price-block__value").innerText;
+        const price = safeGetText("body > div.cardWrapper.outerWrapper > div > div.cardHeaderBlock > div:nth-child(3) > div.search-results.item > div > div > div > div:nth-child(2) > div.price-block > div.price-block__value");
         return this.keepOnlyNumbersAndDelimiters(price).replace(",", ".").trim();
     }
 
     getTimeZone() {
-        return document.querySelector("body > div.cardWrapper.outerWrapper > div > div.cardHeaderBlock > div:nth-child(3) > div.breadcrumb.rowSpaceBetween.flex-wrap > div.breadcrumb__addition.time-zone > div.time-zone__value > span").innerText;
+        return safeGetText("body > div.cardWrapper.outerWrapper > div > div.cardHeaderBlock > div:nth-child(3) > div.breadcrumb.rowSpaceBetween.flex-wrap > div.breadcrumb__addition.time-zone > div.time-zone__value > span");
     }
 }
 
-
-
 let parser;
-debugger;
+
 if (URL.startsWith("https://zakupki.gov.ru/epz/order/notice/notice223")) {
     insertButton("tabsNav d-flex");
     parser = new ProcurementParser223();
@@ -106,6 +119,7 @@ if (URL.startsWith("https://zakupki.gov.ru/epz/order/notice/ea20")) {
     insertButton("tabsNav d-flex align-items-end");
     fillProcurementWith615And44();
 }
+
 if (parser !== undefined && parser !== null) {
     addCss(BOOTSTRAP_LINK)
     parser.parse();
@@ -113,6 +127,11 @@ if (parser !== undefined && parser !== null) {
 
 function addCss(css) {
     const head = document.getElementsByTagName('head')[0];
+    if (!head) return;
+    
+    // Проверяем, не загружен ли уже CSS
+    if (head.querySelector(`link[href="${css}"]`)) return;
+    
     const s = document.createElement('link');
     s.setAttribute('rel', 'stylesheet');
     s.setAttribute('href', css);
@@ -122,9 +141,11 @@ function addCss(css) {
 }
 
 function insertButton(className) {
-    let buttonPlace = document.getElementsByClassName(className)[0];
-    if (!buttonPlace.querySelector("input[type=button]")) { // Проверяем, нет ли кнопки
-        let buttonToMHelper = document.createElement("input");
+    const buttonPlace = document.getElementsByClassName(className)[0];
+    if (!buttonPlace) return;
+    
+    if (!buttonPlace.querySelector("input[type=button]")) {
+        const buttonToMHelper = document.createElement("input");
         buttonToMHelper.type = "button";
         buttonToMHelper.setAttribute("class", BUTTON_CLASS);
         buttonToMHelper.setAttribute("style", "color: white; background-color:grey; border:2px solid black; padding: 12px 16px; font-size:20px");

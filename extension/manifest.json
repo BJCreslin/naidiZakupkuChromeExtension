@@ -6,6 +6,13 @@
   "permissions": [
     "storage"
   ],
+  "host_permissions": [
+    "https://zakupki.gov.ru/*",
+    "https://naidizakupku.ru/*"
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com;"
+  },
   "background": {
     "service_worker": "background.js",
     "type": "module"
@@ -14,9 +21,6 @@
     "default_popup": "popup.html",
     "default_title": "Найди закупку!"
   },
-  "host_permissions": [
-    "https://zakupki.gov.ru/*"
-  ],
   "content_scripts": [
     {
       "matches": [
@@ -26,6 +30,12 @@
         "application.js"
       ],
       "type": "module"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["style/*"],
+      "matches": ["https://zakupki.gov.ru/*"]
     }
   ]
 }
