@@ -1,4 +1,4 @@
-import { checkServerHealth } from './api.js';
+import { checkServerHealth, verifyToken } from './api.js';
 
 const NUMBER_REGEX = /^[0-9]+$/;
 const TELEGRAM_BOT_URL = 'https://t.me/mHelperTestTgBot';
@@ -14,17 +14,160 @@ document.addEventListener('DOMContentLoaded', async () => {
     buttonTgNumber = document.getElementById("button_tg_number");
     testButton = document.getElementById("button_test");
 
-    // Генерируем QR код (с небольшой задержкой для загрузки библиотеки)
-    setTimeout(async () => {
-        await generateQRCode();
-    }, 100);
-
-    // Проверяем состояние сервера
-    await checkServerStatus();
+    // Проверяем авторизацию пользователя
+    const isAuthorized = await checkUserAuthorization();
     
-    // Инициализируем обработчики событий
-    initEventListeners();
+    if (isAuthorized) {
+        // Пользователь авторизован - скрываем форму входа
+        showAuthorizedState();
+    } else {
+        // Пользователь не авторизован - показываем форму входа
+        showLoginForm();
+        
+        // Генерируем QR код (с небольшой задержкой для загрузки библиотеки)
+        setTimeout(async () => {
+            await generateQRCode();
+        }, 100);
+        
+        // Проверяем состояние сервера
+        await checkServerStatus();
+        
+        // Инициализируем обработчики событий
+        initEventListeners();
+    }
 });
+
+/**
+ * Проверяет авторизацию пользователя
+ * @returns {Promise<boolean>} true если пользователь авторизован
+ */
+async function checkUserAuthorization() {
+    console.log('🔐 Проверяем авторизацию пользователя');
+    
+    try {
+        const isTokenValid = await verifyToken();
+        console.log('🔐 Результат проверки токена:', isTokenValid);
+        return isTokenValid;
+    } catch (error) {
+        console.error('🔐 Ошибка при проверке авторизации:', error);
+        return false;
+    }
+}
+
+/**
+ * Показывает состояние для авторизованного пользователя
+ */
+function showAuthorizedState() {
+    console.log('🔐 Показываем состояние авторизованного пользователя');
+    
+    // Скрываем форму входа
+    const loginForm = document.getElementsByClassName("tg_number")[0];
+    if (loginForm) {
+        loginForm.style.display = "none";
+    }
+    
+    // Показываем сообщение об успешной авторизации
+    const container = document.querySelector('.container-main');
+    if (container) {
+        const authMessage = document.createElement('div');
+        authMessage.className = 'alert alert-success mt-3';
+        authMessage.innerHTML = `
+            <h5>✅ Вы авторизованы!</h5>
+            <p>Расширение готово к работе. Переходите на сайт закупок для сохранения данных.</p>
+            <button type="button" class="btn btn-outline-danger btn-sm" id="logout-btn">Выйти</button>
+        `;
+        
+        // Вставляем после описания
+        const description = document.querySelector('.description');
+        if (description) {
+            description.after(authMessage);
+        } else {
+            container.appendChild(authMessage);
+        }
+        
+        // Добавляем обработчик для кнопки выхода
+        const logoutBtn = document.getElementById('logout-btn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', handleLogout);
+        }
+    }
+    
+    connected = true;
+    
+    // Инициализируем кнопку тестирования для авторизованных пользователей
+    if (testButton) {
+        initTestButtonForAuthorizedUser();
+    }
+}
+
+/**
+ * Показывает форму входа для неавторизованного пользователя
+ */
+function showLoginForm() {
+    console.log('🔐 Показываем форму входа');
+    
+    // Убеждаемся что форма входа видна
+    const loginForm = document.getElementsByClassName("tg_number")[0];
+    if (loginForm) {
+        loginForm.style.display = "block";
+    }
+    
+    connected = false;
+}
+
+/**
+ * Обрабатывает выход пользователя
+ */
+async function handleLogout() {
+    console.log('🔐 Выход пользователя');
+    
+    try {
+        // Импортируем функцию удаления токена
+        const { removeToken } = await import('./localStorage.js');
+        await removeToken();
+        
+        // Перезагружаем popup
+        window.location.reload();
+        
+    } catch (error) {
+        console.error('🔐 Ошибка при выходе:', error);
+        showErrorMessage("Ошибка при выходе из системы");
+    }
+}
+
+/**
+ * Инициализирует кнопку тестирования для авторизованных пользователей
+ */
+function initTestButtonForAuthorizedUser() {
+    if (!testButton) return;
+    
+    testButton.addEventListener("click", async function() {
+        testButton.textContent = "Проверка...";
+        testButton.disabled = true;
+        
+        const isHealthy = await checkServerHealth();
+        
+        if (isHealthy) {
+            showSuccessMessage("Сервер доступен ✅");
+            testButton.classList.remove("btn-secondary");
+            testButton.classList.add("btn-success");
+            testButton.textContent = "Сервер доступен";
+        } else {
+            showErrorMessage("Сервер недоступен ❌");
+            testButton.classList.remove("btn-secondary");
+            testButton.classList.add("btn-danger");
+            testButton.textContent = "Сервер недоступен";
+        }
+        
+        testButton.disabled = false;
+        
+        // Возвращаем исходное состояние через 3 секунды
+        setTimeout(() => {
+            testButton.className = "btn btn-secondary";
+            testButton.textContent = "Test connection";
+        }, 3000);
+    });
+}
 
 /**
  * Генерирует QR код для Telegram бота
@@ -87,6 +230,25 @@ function initEventListeners() {
         }
     });
 
+    // Обработчик нажатия Enter в поле ввода
+    inputField.addEventListener("keydown", function (event) {
+        if (event.key === "Enter" && !buttonTgNumber.classList.contains("disabled")) {
+            event.preventDefault(); // Предотвращаем стандартное поведение формы
+            buttonTgNumber.click(); // Имитируем клик по кнопке
+        }
+    });
+
+    // Обработчик отправки формы (дополнительная защита для Enter)
+    const form = document.getElementById("form_tg_number");
+    if (form) {
+        form.addEventListener("submit", function (event) {
+            event.preventDefault(); // Предотвращаем перезагрузку страницы
+            if (!buttonTgNumber.classList.contains("disabled")) {
+                buttonTgNumber.click();
+            }
+        });
+    }
+
     // Обработчик кнопки авторизации
     buttonTgNumber.addEventListener("click", async function () {
         if (buttonTgNumber.classList.contains("disabled")) {
@@ -107,12 +269,11 @@ function initEventListeners() {
         buttonTgNumber.disabled = true;
 
         function createConnection() {
-            console.log('🔐 Авторизация успешна, скрываем форму');
-            const numberDocument = document.getElementsByClassName("tg_number")[0];
-            if (numberDocument) {
-                numberDocument.style.display = "none";
-            }
-            connected = true;
+            console.log('🔐 Авторизация успешна, переключаем в авторизованное состояние');
+            
+            // Показываем состояние авторизованного пользователя
+            showAuthorizedState();
+            
             showSuccessMessage("Успешно подключено!");
         }
 

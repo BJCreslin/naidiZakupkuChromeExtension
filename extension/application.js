@@ -4,6 +4,26 @@ const BUTTON_CLASS = "btn btn-primary";
 const BOOTSTRAP_LINK = "https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css";
 const BOOTSTRAP_INTEGRITY = "sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We"
 
+/**
+ * Проверяет, авторизован ли пользователь
+ * @returns {Promise<boolean>} true если пользователь авторизован
+ */
+async function isUserAuthorized() {
+    return new Promise((resolve) => {
+        chrome.runtime.sendMessage(
+            { destination: "checkAuth" },
+            (response) => {
+                if (chrome.runtime.lastError) {
+                    console.warn('🔐 Ошибка проверки авторизации:', chrome.runtime.lastError);
+                    resolve(false);
+                } else {
+                    resolve(response?.isAuthorized || false);
+                }
+            }
+        );
+    });
+}
+
 const dataAboutProcurement = {
     federalLawNumber: "",
     linkOnPlacement: "",
@@ -509,16 +529,19 @@ class ProcurementParser223 extends ProcurementParserInterface {
 
 let parser;
 
-if (URL.startsWith("https://zakupki.gov.ru/epz/order/notice/notice223")) {
-    insertButton("tabsNav d-flex");
-    parser = new ProcurementParser223();
-}
+// Асинхронная инициализация для разных типов закупок
+(async function initializeProcurementPage() {
+    if (URL.startsWith("https://zakupki.gov.ru/epz/order/notice/notice223")) {
+        await insertButton("tabsNav d-flex");
+        parser = new ProcurementParser223();
+    }
 
-if (URL.startsWith("https://zakupki.gov.ru/epz/order/notice/ea20")) {
-    addCss(BOOTSTRAP_LINK)
-    insertButton("tabsNav d-flex align-items-end");
-    fillProcurementWith615And44();
-}
+    if (URL.startsWith("https://zakupki.gov.ru/epz/order/notice/ea20")) {
+        addCss(BOOTSTRAP_LINK);
+        await insertButton("tabsNav d-flex align-items-end");
+        fillProcurementWith615And44();
+    }
+})();
 
 if (parser !== undefined && parser !== null) {
     addCss(BOOTSTRAP_LINK)
@@ -540,10 +563,27 @@ function addCss(css) {
     head.appendChild(s);
 }
 
-function insertButton(className) {
+async function insertButton(className) {
     // Проверяем, не отменена ли закупка
     if (isProcurementCancelled()) {
         console.log("Закупка отменена, кнопка не будет добавлена");
+        return;
+    }
+
+    // Проверяем авторизацию пользователя
+    const isAuthorized = await isUserAuthorized();
+    console.log('🔐 Проверка авторизации для кнопки:', isAuthorized);
+    
+    if (!isAuthorized) {
+        console.log("Пользователь не авторизован, кнопка не будет добавлена");
+        
+        // Показываем уведомление о необходимости авторизации
+        showNotification(
+            "🔐 Требуется авторизация", 
+            "Для сохранения закупок откройте расширение и войдите в систему", 
+            'info'
+        );
+        
         return;
     }
 

@@ -4,6 +4,7 @@ const SERVER_URL = "https://naidizakupku.ru/";
 const HEALTH_CHECK_URL = SERVER_URL + "api/health";
 const CODE_LOGIN_URL = SERVER_URL + "api/v1/login";
 const POST_PROCUREMENT_URL = SERVER_URL + "api/chromeExtension/v1/procurement";
+const VERIFY_TOKEN_URL = SERVER_URL + "api/v1/verify-token";
 
 /**
  * Проверяет доступность сервера
@@ -21,6 +22,57 @@ export async function checkServerHealth() {
     } catch (error) {
         console.error('Сервер недоступен:', error);
         return false;
+    }
+}
+
+/**
+ * Проверяет валидность токена авторизации
+ * @returns {Promise<boolean>} true если токен валиден, false если нет или произошла ошибка
+ */
+export async function verifyToken() {
+    const token = await getToken();
+    
+    if (!token) {
+        console.log('🔐 Токен отсутствует, авторизация не требуется');
+        return false;
+    }
+    
+    try {
+        console.log('🔐 Проверяем валидность токена на сервере');
+        
+        const headers = new Headers({
+            'Accept': 'application/json',
+            'Authorization': 'Bearer ' + token
+        });
+        
+        const response = await fetch(VERIFY_TOKEN_URL, {
+            method: 'GET',
+            headers: headers
+        });
+        
+        console.log('🔐 Ответ проверки токена:', {
+            status: response.status,
+            statusText: response.statusText
+        });
+        
+        if (response.status === 401) {
+            console.warn('🔐 Токен недействителен, удаляем его');
+            await removeToken();
+            return false;
+        }
+        
+        if (!response.ok) {
+            console.warn('🔐 Ошибка при проверке токена:', response.statusText);
+            return false;
+        }
+        
+        console.log('🔐 Токен валиден');
+        return true;
+        
+    } catch (error) {
+        console.error('🔐 Ошибка при проверке токена:', error);
+        // Если сервер недоступен, но токен есть, предполагаем что он валиден
+        return true;
     }
 }
 

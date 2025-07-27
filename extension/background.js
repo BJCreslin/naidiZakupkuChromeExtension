@@ -1,4 +1,4 @@
-import {sendCodeAndReceiveToken, sendProcurement} from './api.js';
+import {sendCodeAndReceiveToken, sendProcurement, verifyToken} from './api.js';
 import {saveToken} from './localStorage.js';
 
 /**
@@ -16,8 +16,31 @@ chrome.runtime.onMessage.addListener(
             loginCodeHandler(request, sendResponse);
             return true;
         }
+        if (request.destination === "checkAuth") {
+            checkAuthHandler(request, sendResponse);
+            return true;
+        }
     }
 );
+
+/**
+ * Обработчик события destination === "checkAuth". Проверяет авторизацию пользователя.
+ * @param request
+ * @param sendResponse
+ * @returns {undefined}
+ */
+async function checkAuthHandler(request, sendResponse) {
+    console.log('🔐 Проверка авторизации пользователя');
+    
+    try {
+        const isAuthorized = await verifyToken();
+        console.log('🔐 Результат проверки авторизации:', isAuthorized);
+        sendResponse({ isAuthorized });
+    } catch (error) {
+        console.error('🔐 Ошибка при проверке авторизации:', error);
+        sendResponse({ isAuthorized: false });
+    }
+}
 
 /**
  * Обработчик события destination === "loginCode". Посылает код авторизации на сервер.
