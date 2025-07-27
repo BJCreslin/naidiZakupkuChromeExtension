@@ -121,8 +121,9 @@ async function sendPostRequest(url, body, isTokenRequest = false) {
             console.log('🌐 Распарсенные данные:', data);
             return data;
         } catch (error) {
-            console.error('🌐 Ошибка парсинга JSON:', error);
-            throw new Error('Ошибка парсинга JSON: ' + text);
+            console.log('🌐 Ответ не является JSON, возвращаем как строку:', text);
+            // Если это не JSON, возвращаем строку как есть (например, номер закупки)
+            return { success: true, data: text.trim() };
         }
 
     } catch (error) {
