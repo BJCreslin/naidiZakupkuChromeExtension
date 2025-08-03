@@ -632,6 +632,13 @@ let parser;
         await insertButton("tabsNav d-flex align-items-end");
         fillProcurementWith615And44();
     }
+
+    if (URL.startsWith("https://zakupki.gov.ru/epz/order/notice/zk20")) {
+        console.log('🔧 Инициализация поддержки zk20 закупок');
+        addCss(BOOTSTRAP_LINK);
+        await insertButton("tabsNav d-flex align-items-end");
+        fillProcurementWith615And44();
+    }
 })();
 
 if (parser !== undefined && parser !== null) {
