@@ -73,7 +73,7 @@ function showAuthorizedState() {
         authMessage.className = 'alert alert-success mt-3';
         authMessage.innerHTML = `
             <h5>✅ Вы авторизованы!</h5>
-            <p>Расширение готово к работе. Переходите на сайт закупок для сохранения данных.</p>
+            <p>Расширение готово к работе. <a href="https://zakupki.gov.ru/epz/order/extendedsearch/results.html" target="_blank" rel="noopener" style="color: #0066cc; text-decoration: underline; font-weight: 500;">Переходите на сайт закупок</a> для сохранения данных.</p>
             <button type="button" class="btn btn-outline-danger btn-sm" id="logout-btn">Выйти</button>
         `;
         

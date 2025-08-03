@@ -354,6 +354,97 @@ function showNotification(title, message, type = 'info') {
 }
 
 /**
+ * Показывает уведомление об успешном сохранении с ссылкой на поиск закупок
+ * @param {string} procurementNumber - Номер закупки
+ */
+function showSuccessNotificationWithLink(procurementNumber) {
+    // Создаем контейнер для уведомления с ссылкой
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 999999;
+        min-width: 320px;
+        max-width: 450px;
+        padding: 16px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-size: 14px;
+        line-height: 1.4;
+        color: white;
+        background: linear-gradient(135deg, #28a745, #20c997);
+        transform: translateX(100%);
+        transition: transform 0.3s ease-in-out;
+    `;
+    
+    // Содержимое уведомления с ссылкой
+    notification.innerHTML = `
+        <div style="font-weight: 600; margin-bottom: 8px;">✅ Закупка запомнена в сервисе!</div>
+        <div style="opacity: 0.9; font-size: 13px; margin-bottom: 12px;">Номер закупки: ${procurementNumber}</div>
+        <a href="https://zakupki.gov.ru/epz/order/extendedsearch/results.html" 
+           target="_blank" 
+           style="display: inline-block; 
+                  background: rgba(255,255,255,0.2); 
+                  color: white; 
+                  text-decoration: none; 
+                  padding: 8px 12px; 
+                  border-radius: 4px; 
+                  font-size: 12px; 
+                  font-weight: 500; 
+                  border: 1px solid rgba(255,255,255,0.3);
+                  transition: all 0.2s ease;">
+            🔍 Поиск закупок
+        </a>
+        <div style="position: absolute; top: 8px; right: 12px; font-size: 18px; opacity: 0.7; cursor: pointer;">×</div>
+    `;
+    
+    // Добавляем на страницу
+    document.body.appendChild(notification);
+    
+    // Анимация появления
+    setTimeout(() => {
+        notification.style.transform = 'translateX(0)';
+    }, 100);
+    
+    // Автоматическое скрытие через 8 секунд (больше времени для ссылки)
+    const hideTimeout = setTimeout(() => {
+        hideNotification();
+    }, 8000);
+    
+    // Функция скрытия
+    function hideNotification() {
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+        clearTimeout(hideTimeout);
+    }
+    
+    // Закрытие по клику на крестик
+    const closeButton = notification.querySelector('div[style*="position: absolute"]');
+    closeButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        hideNotification();
+    });
+    
+    // Подсветка ссылки при наведении
+    const link = notification.querySelector('a');
+    link.addEventListener('mouseenter', () => {
+        link.style.background = 'rgba(255,255,255,0.3)';
+        link.style.transform = 'translateY(-1px)';
+    });
+    
+    link.addEventListener('mouseleave', () => {
+        link.style.background = 'rgba(255,255,255,0.2)';
+        link.style.transform = 'translateY(0)';
+    });
+}
+
+/**
  * Извлекает UTC часть из строки с временной зоной
  * @param {string} timeZoneString - Строка с временной зоной
  * @returns {string} - Только UTC часть без скобок или исходная строка
@@ -622,7 +713,8 @@ async function insertButton(className) {
                             procurementNumber = response.data.number;
                         }
                         
-                        showNotification(`✅ Закупка запомнена в сервисе!`, `Номер закупки: ${procurementNumber}`, 'success');
+                        // Показываем уведомление с ссылкой на поиск
+                        showSuccessNotificationWithLink(procurementNumber);
                     } else {
                         const errorMessage = response?.error || response?.message || "Неизвестная ошибка";
                         console.error('❌ Ошибка при сохранении закупки:', response);
