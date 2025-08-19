@@ -788,8 +788,3 @@ function fillProcurementWith615And44() {
     
     dataAboutProcurement.linkOnPlacement = URL;
 }
-
-
-
-
-

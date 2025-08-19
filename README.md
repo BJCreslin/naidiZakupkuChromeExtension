@@ -1,137 +1,175 @@
-# naidiZakupku Chrome Extension
+# NaidiZakupku Chrome Extension
 
-Расширение для парсинга закупок с сайта zakupki.gov.ru и отправки в Telegram бот.
+Chrome расширение для автоматического сохранения закупок с сайта zakupki.gov.ru
 
-## 🔧 Исправленные проблемы
+## 📋 Анализ проекта
 
-### ✅ **КРИТИЧЕСКИЕ ИСПРАВЛЕНИЯ**
+### ✅ Что работает хорошо:
 
-1. **Заменил localStorage на chrome.storage.local API**
-   - localStorage не работает в Service Worker (Manifest V3)
-   - Добавлена поддержка async/await
+1. **Manifest V3** - правильно настроен для современных требований Chrome
+2. **Архитектура** - четкое разделение на background, content scripts и popup
+3. **Безопасность** - правильные permissions, CSP настроен
+4. **Авторизация** - система токенов с проверкой валидности
+5. **Обработка ошибок** - хорошее логирование и обработка исключений
+6. **UI/UX** - Bootstrap, QR код, уведомления
 
-2. **Добавлен Content Security Policy (CSP)**
-   - Защита от XSS атак
-   - Контроль внешних ресурсов
+### ⚠️ Исправленные проблемы:
 
-3. **Исправлен production код**
-   - Убран `debugger` statement
-   - Добавлены TODO для HTTPS
+1. **CSP** - убран `'unsafe-inline'` для повышения безопасности
+2. **Runtime errors** - добавлена обработка `chrome.runtime.lastError`
+3. **Code cleanup** - убраны пустые строки в конце файлов
 
-4. **Улучшена безопасность и UX**
-   - Добавлен локальный QR код генератор
-   - Добавлен `rel="noopener"` для внешних ссылок
+### 🔧 Рекомендации по улучшению:
 
-### ⚡ **УЛУЧШЕНИЯ АРХИТЕКТУРЫ**
+#### 1. Добавить иконки
+```json
+"icons": {
+  "16": "icons/icon16.png",
+  "48": "icons/icon48.png", 
+  "128": "icons/icon128.png"
+}
+```
 
-1. **Обработка ошибок DOM**
-   - Добавлена функция `safeGetText()` 
-   - Защита от null/undefined элементов
-
-2. **Улучшен UX**
-   - Loading состояния кнопок
-   - Сообщения об ошибках/успехе  
-   - Валидация input полей
-   - QR код для быстрого доступа к боту
-
-3. **Безопасность запросов**
-   - Async/await вместо callbacks
-   - Правильная обработка 401 ошибок
-   - Логирование ошибок
-
-## 🚨 **ОСТАЮЩИЕСЯ РЕКОМЕНДАЦИИ**
-
-### 1. **✅ HTTPS настроен**
+#### 2. Добавить retry механизм для сетевых запросов
 ```javascript
-// Production сервер настроен
-const SERVER_URL = "https://naidizakupku.ru/";
+async function fetchWithRetry(url, options, maxRetries = 3) {
+    for (let i = 0; i < maxRetries; i++) {
+        try {
+            return await fetch(url, options);
+        } catch (error) {
+            if (i === maxRetries - 1) throw error;
+            await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+        }
+    }
+}
 ```
 
-### 2. **Улучшить CSS селекторы**
-Текущие селекторы хрупкие. Рекомендую:
-- Использовать data-атрибуты
-- Создать более устойчивые селекторы
-- Добавить fallback логику
+#### 3. Добавить offline поддержку
+```javascript
+// В background.js
+chrome.runtime.onInstalled.addListener(() => {
+    chrome.alarms.create('healthCheck', { periodInMinutes: 5 });
+});
 
-### 3. **Добавить TypeScript**
-```bash
-npm install typescript @types/chrome
+chrome.alarms.onAlarm.addListener(async (alarm) => {
+    if (alarm.name === 'healthCheck') {
+        await checkServerHealth();
+    }
+});
 ```
 
-### 4. **✅ QR код библиотека локализована**
-```bash
-# qrcode.min.js теперь включен локально в расширение
-# Решена проблема с CSP для Manifest V3
+#### 4. Улучшить error handling в popup.js
+```javascript
+// Добавить timeout для fetch запросов
+const controller = new AbortController();
+const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+try {
+    const response = await fetch(url, {
+        ...options,
+        signal: controller.signal
+    });
+} catch (error) {
+    if (error.name === 'AbortError') {
+        showErrorMessage('Превышено время ожидания');
+    }
+} finally {
+    clearTimeout(timeoutId);
+}
 ```
 
-### 5. **Миграция на функциональное программирование**
-- Убрать классы в пользу функций
-- Использовать модульную архитектуру
+#### 5. Добавить unit тесты
+```javascript
+// tests/api.test.js
+describe('API Tests', () => {
+    test('checkServerHealth returns boolean', async () => {
+        const result = await checkServerHealth();
+        expect(typeof result).toBe('boolean');
+    });
+});
+```
 
-## 📋 **Структура проекта**
+## 🚀 Установка и запуск
+
+1. Откройте Chrome и перейдите в `chrome://extensions/`
+2. Включите "Developer mode"
+3. Нажмите "Load unpacked" и выберите папку `extension/`
+4. Расширение готово к использованию
+
+## 📁 Структура проекта
 
 ```
 extension/
-├── manifest.json          # Manifest V3 конфигурация
-├── background.js          # Service Worker
-├── popup.html/js          # Popup интерфейс  
-├── application.js         # Content Script
-├── api.js                 # HTTP API модуль
-├── localStorage.js        # chrome.storage API
+├── manifest.json          # Конфигурация расширения
+├── background.js          # Service Worker (MV3)
+├── popup.html            # UI расширения
+├── popup.js              # Логика popup
+├── application.js        # Content script для zakupki.gov.ru
+├── api.js               # API для взаимодействия с сервером
+├── localStorage.js      # Работа с chrome.storage
+├── qrcode.min.js        # Библиотека для QR кодов
 └── style/
-    └── style.css          # Стили
+    └── style.css        # Стили расширения
 ```
 
-## 🔒 **Безопасность**
+## 🔐 Авторизация
 
-- ✅ CSP настроен
-- ✅ chrome.storage.local вместо localStorage  
-- ✅ Валидация пользовательского ввода
-- ✅ Безопасная обработка внешних ссылок
-- ✅ HTTPS production сервер настроен
-- ✅ Health check endpoint для проверки доступности
-- ✅ Локальная генерация QR кода (qrcode.min.js включен в расширение)
-- ✅ CSP исправлен для MV3 совместимости
-- ✅ API endpoints обновлены: `/api/v1/login` для авторизации
-- ✅ JWT токен обрабатывается как строка (не JSON)
+1. Откройте расширение
+2. Отсканируйте QR код или перейдите в Telegram бот
+3. Получите код авторизации
+4. Введите код в расширение
 
-## 🚀 **Установка**
+## 🛠️ Разработка
 
-1. Откройте `chrome://extensions/`
-2. Включите "Режим разработчика"
-3. Нажмите "Загрузить распакованное расширение"
-4. Выберите папку `extension/`
+### Добавление новых типов закупок:
 
-## 🐛 **Отладка**
+1. Создайте новый класс парсера в `application.js`
+2. Наследуйтесь от `ProcurementParserInterface`
+3. Реализуйте все обязательные методы
+4. Добавьте условие в `initializeProcurementPage()`
 
-### Консоли для проверки
-- **Background script**: `chrome://extensions` → "background page" 
-- **Content script**: DevTools на сайте zakupki.gov.ru
-- **Popup**: Правый клик на иконке → "Проверить элемент"
+### Добавление новых статусов исключений:
 
-### Отладка ошибки 401 (авторизация)
-1. Откройте консоль background script
-2. Введите код авторизации в popup
-3. Проверьте логи с эмодзи:
-   - 🔐 `Отправляем код авторизации`
-   - 🔐 `Возвращаем токен как строку`
-   - 💾 `Токен успешно сохранен, длина: XXX`
-   - 💾 `Превью токена: eyJhbGciOi...`
-
-### Типичные проблемы
-- **✅ Исправлено**: Сервер возвращает JWT токен как строку (не JSON)
-- **Неправильный endpoint**: Проверьте что используется `/api/v1/login`
-- **Истекший токен**: Токен удаляется автоматически при 401
-- **Неверный код**: Убедитесь что код из Telegram корректный
-
-### Полезные команды в консоли
 ```javascript
-// Проверить сохраненный токен
-chrome.storage.local.get(['token']).then(console.log);
+// В консоли браузера на странице закупки
+procurementStatusManager.addStatus("Новый статус для исключения");
+procurementStatusManager.showStatuses();
+```
 
-// Очистить токен
-chrome.storage.local.remove(['token']);
+## 📊 Мониторинг
 
-// Проверить здоровье сервера
-fetch('https://naidizakupku.ru/api/health').then(r => console.log(r.status));
-``` 
+- Логи доступны в DevTools → Console
+- Background script логи в chrome://extensions/ → Details → Service Worker
+- Content script логи на странице закупки
+
+## 🔒 Безопасность
+
+- CSP настроен без `unsafe-inline`
+- Минимальные permissions
+- Токены хранятся в chrome.storage.local
+- Автоматическая проверка валидности токенов
+
+## 📈 Производительность
+
+- Service Worker не блокирует UI
+- Асинхронная обработка запросов
+- Кэширование токенов
+- Оптимизированные DOM селекторы
+
+## 🐛 Отладка
+
+1. **Popup не открывается**: проверьте manifest.json и popup.html
+2. **Кнопка не появляется**: проверьте авторизацию и content script
+3. **Ошибки API**: проверьте логи в background script
+4. **Парсинг не работает**: проверьте селекторы в application.js
+
+## 📝 TODO
+
+- [ ] Добавить иконки расширения
+- [ ] Реализовать retry механизм
+- [ ] Добавить offline поддержку
+- [ ] Написать unit тесты
+- [ ] Добавить TypeScript
+- [ ] Улучшить error handling
+- [ ] Добавить analytics
+- [ ] Оптимизировать bundle size 

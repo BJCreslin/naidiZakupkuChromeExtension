@@ -8,6 +8,13 @@ chrome.runtime.onMessage.addListener(
     function (request, sender, sendResponse) {
         console.log('📬 Получено сообщение в background:', request)
 
+        // Проверяем на ошибки runtime
+        if (chrome.runtime.lastError) {
+            console.error('❌ Runtime error:', chrome.runtime.lastError);
+            sendResponse({result: false, error: chrome.runtime.lastError.message});
+            return true;
+        }
+
         if (request.destination === "procurementSender") {
             senderHandler(request, sendResponse);
             return true;

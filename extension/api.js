@@ -1,10 +1,10 @@
 import {getToken, removeToken} from './localStorage.js';
 
 const SERVER_URL = "https://naidizakupku.ru/";
-const HEALTH_CHECK_URL = SERVER_URL + "api/health";
-const CODE_LOGIN_URL = SERVER_URL + "api/v1/login";
-const POST_PROCUREMENT_URL = SERVER_URL + "api/chromeExtension/v1/procurement";
-const VERIFY_TOKEN_URL = SERVER_URL + "api/v1/verify-token";
+const HEALTH_CHECK_URL = SERVER_URL + "api/backend/health";
+const CODE_LOGIN_URL = SERVER_URL + "api/backend/v1/login";
+const POST_PROCUREMENT_URL = SERVER_URL + "api/backend/chromeExtension/v1/procurement";
+const VERIFY_TOKEN_URL = SERVER_URL + "api/backend/v1/verify-token";
 
 /**
  * Проверяет доступность сервера
