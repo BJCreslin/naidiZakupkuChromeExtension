@@ -1,4 +1,4 @@
-import { MESSAGE_TYPES } from './config';
+// application.js
 const URL = document.documentURI;
 const BUTTON_NAME = "Запомнить";
 const BUTTON_CLASS = "btn btn-primary";

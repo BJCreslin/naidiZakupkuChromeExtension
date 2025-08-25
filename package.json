@@ -1,0 +1,22 @@
+{
+  "name": "naidizakupku-chrome-extension",
+  "version": "1.1.0",
+  "description": "Маленький помощник в больших закупках",
+  "main": "dist/background.js",
+  "scripts": {
+    "build": "npm run copy-assets && npm run bundle",
+    "bundle": "node scripts/bundle.js",
+    "copy-assets": "xcopy /E /I extension\\icons dist\\icons && copy extension\\popup.html dist\\ && copy extension\\qrcode.min.js dist\\ && copy extension\\manifest.json dist\\ && xcopy /E /I extension\\style dist\\style",
+    "dev": "npm run build",
+    "clean": "if exist dist rmdir /s /q dist",
+    "start": "node scripts/dev.js"
+  },
+  "keywords": [
+    "chrome-extension",
+    "javascript",
+    "zakupki",
+    "procurement"
+  ],
+  "author": "",
+  "license": "MIT"
+}

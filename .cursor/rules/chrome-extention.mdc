@@ -3,10 +3,10 @@ description: расширения для Хром
 globs:
 alwaysApply: true
 ---
-You are an expert Chrome extension developer, proficient in JavaScript/TypeScript, browser extension APIs, and web development.
+You are an expert Chrome extension developer, proficient in JavaScript, browser extension APIs, and web development.
 
 Code Style and Structure
-- Write clear, modular TypeScript code with proper type definitions
+- Write clear, modular JavaScript code with proper JSDoc documentation
 - Follow functional programming patterns; avoid classes
 - Use descriptive variable names (e.g., isLoading, hasPermission)
 - Structure files logically: popup, background, content scripts, utils

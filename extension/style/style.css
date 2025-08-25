@@ -51,3 +51,14 @@ h1 {
 .tg_number button {
     margin-top: 5%;
 }
+
+.description a {
+    color: #0066cc;
+    text-decoration: none;
+}
+
+.qr-code-container {
+    display: flex;
+    justify-content: center;
+    margin: 10px 0;
+}

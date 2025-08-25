@@ -1,175 +1,250 @@
 # NaidiZakupku Chrome Extension
 
-Chrome расширение для автоматического сохранения закупок с сайта zakupki.gov.ru
+Маленький помощник в больших закупках - Chrome расширение для сохранения закупок с сайта zakupki.gov.ru
 
-## 📋 Анализ проекта
+## 🚀 JavaScript Implementation
 
-### ✅ Что работает хорошо:
+Расширение полностью написано на чистом JavaScript для простоты разработки и использования.
 
-1. **Manifest V3** - правильно настроен для современных требований Chrome
-2. **Архитектура** - четкое разделение на background, content scripts и popup
-3. **Безопасность** - правильные permissions, CSP настроен
-4. **Авторизация** - система токенов с проверкой валидности
-5. **Обработка ошибок** - хорошее логирование и обработка исключений
-6. **UI/UX** - Bootstrap, QR код, уведомления
+### Основные преимущества:
 
-### ⚠️ Исправленные проблемы:
-
-1. **CSP** - убран `'unsafe-inline'` для повышения безопасности
-2. **Runtime errors** - добавлена обработка `chrome.runtime.lastError`
-3. **Code cleanup** - убраны пустые строки в конце файлов
-
-### 🔧 Рекомендации по улучшению:
-
-#### 1. Добавить иконки
-```json
-"icons": {
-  "16": "icons/icon16.png",
-  "48": "icons/icon48.png", 
-  "128": "icons/icon128.png"
-}
-```
-
-#### 2. Добавить retry механизм для сетевых запросов
-```javascript
-async function fetchWithRetry(url, options, maxRetries = 3) {
-    for (let i = 0; i < maxRetries; i++) {
-        try {
-            return await fetch(url, options);
-        } catch (error) {
-            if (i === maxRetries - 1) throw error;
-            await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
-        }
-    }
-}
-```
-
-#### 3. Добавить offline поддержку
-```javascript
-// В background.js
-chrome.runtime.onInstalled.addListener(() => {
-    chrome.alarms.create('healthCheck', { periodInMinutes: 5 });
-});
-
-chrome.alarms.onAlarm.addListener(async (alarm) => {
-    if (alarm.name === 'healthCheck') {
-        await checkServerHealth();
-    }
-});
-```
-
-#### 4. Улучшить error handling в popup.js
-```javascript
-// Добавить timeout для fetch запросов
-const controller = new AbortController();
-const timeoutId = setTimeout(() => controller.abort(), 10000);
-
-try {
-    const response = await fetch(url, {
-        ...options,
-        signal: controller.signal
-    });
-} catch (error) {
-    if (error.name === 'AbortError') {
-        showErrorMessage('Превышено время ожидания');
-    }
-} finally {
-    clearTimeout(timeoutId);
-}
-```
-
-#### 5. Добавить unit тесты
-```javascript
-// tests/api.test.js
-describe('API Tests', () => {
-    test('checkServerHealth returns boolean', async () => {
-        const result = await checkServerHealth();
-        expect(typeof result).toBe('boolean');
-    });
-});
-```
-
-## 🚀 Установка и запуск
-
-1. Откройте Chrome и перейдите в `chrome://extensions/`
-2. Включите "Developer mode"
-3. Нажмите "Load unpacked" и выберите папку `extension/`
-4. Расширение готово к использованию
+- **Простота** - нет необходимости в TypeScript компиляторе
+- **Скорость** - быстрая сборка без дополнительной компиляции
+- **Совместимость** - работает в любом браузере без дополнительных инструментов
+- **Читаемость** - чистый JavaScript код без лишних абстракций
+- **Доступность** - легко понять и модифицировать любому разработчику
 
 ## 📁 Структура проекта
 
 ```
-extension/
-├── manifest.json          # Конфигурация расширения
-├── background.js          # Service Worker (MV3)
-├── popup.html            # UI расширения
-├── popup.js              # Логика popup
-├── application.js        # Content script для zakupki.gov.ru
-├── api.js               # API для взаимодействия с сервером
-├── localStorage.js      # Работа с chrome.storage
-├── qrcode.min.js        # Библиотека для QR кодов
-└── style/
-    └── style.css        # Стили расширения
+naidiZakupkuChromeExtension/
+├── src/                    # JavaScript исходники
+│   ├── config.js          # Конфигурация и константы
+│   ├── localStorage.js    # Работа с хранилищем
+│   ├── api.js            # API запросы
+│   ├── background.js     # Background script
+│   ├── popup.js          # Popup интерфейс
+│   └── application.js    # Content script
+├── extension/             # Статические ресурсы
+│   ├── icons/            # Иконки расширения
+│   ├── style/            # CSS стили
+│   ├── popup.html        # HTML popup
+│   ├── manifest.json     # Манифест расширения
+│   └── qrcode.min.js     # Библиотека QR кодов
+├── dist/                 # Собранные файлы (создается автоматически)
+├── scripts/              # Скрипты сборки
+│   ├── bundle.js         # Бандлер JavaScript модулей
+│   └── dev.js           # Скрипт разработки
+├── package.json          # Зависимости и скрипты
+└── README.md            # Документация
 ```
 
-## 🔐 Авторизация
+## 🛠 Установка и разработка
 
-1. Откройте расширение
-2. Отсканируйте QR код или перейдите в Telegram бот
-3. Получите код авторизации
-4. Введите код в расширение
+### Предварительные требования
 
-## 🛠️ Разработка
+- Node.js 16+ 
+- npm или yarn
 
-### Добавление новых типов закупок:
+### Установка зависимостей
 
-1. Создайте новый класс парсера в `application.js`
-2. Наследуйтесь от `ProcurementParserInterface`
-3. Реализуйте все обязательные методы
-4. Добавьте условие в `initializeProcurementPage()`
+```bash
+npm install
+```
 
-### Добавление новых статусов исключений:
+### Команды разработки
+
+```bash
+# Сборка проекта
+npm run build
+
+# Быстрая сборка для разработки
+npm run dev
+
+# Очистка папки dist
+npm run clean
+
+# Справка по разработке
+npm run start
+```
+
+### Загрузка расширения в Chrome
+
+1. Выполните сборку: `npm run build`
+2. Откройте Chrome и перейдите в `chrome://extensions/`
+3. Включите "Режим разработчика"
+4. Нажмите "Загрузить распакованное расширение"
+5. Выберите папку `dist/`
+
+## 📝 Структуры данных
+
+### Основные объекты
 
 ```javascript
-// В консоли браузера на странице закупки
-procurementStatusManager.addStatus("Новый статус для исключения");
-procurementStatusManager.showStatuses();
+// Сообщения между компонентами
+const chromeMessage = {
+  destination: 'procurementSender', // 'loginCode' | 'checkAuth'
+  data: {} // любые данные
+};
+
+// Данные закупки
+const procurementData = {
+  federalLawNumber: "44",
+  linkOnPlacement: "https://zakupki.gov.ru/...",
+  name: "Название закупки",
+  publisher: "Организатор",
+  price: "1000000.00",
+  timeZone: "UTC+3",
+  registryNumber: "0123456789"
+};
+
+// Ответы API
+const apiResponse = {
+  success: true,
+  data: "результат",
+  error: null // или строка с ошибкой
+};
 ```
 
-## 📊 Мониторинг
+### Конфигурация
 
-- Логи доступны в DevTools → Console
-- Background script логи в chrome://extensions/ → Details → Service Worker
-- Content script логи на странице закупки
+Все константы и настройки вынесены в `src/config.js`:
 
-## 🔒 Безопасность
+```javascript
+const BASE_URL = "https://naidizakupku.ru";
+const API_PATH = "/api/backend/api";
 
-- CSP настроен без `unsafe-inline`
-- Минимальные permissions
-- Токены хранятся в chrome.storage.local
-- Автоматическая проверка валидности токенов
+export const CONFIG = {
+  baseUrl: BASE_URL,
+  serverUrl: `${BASE_URL}/`,
+  healthCheckUrl: `${BASE_URL}${API_PATH}/health`,
+  loginUrl: `${BASE_URL}${API_PATH}/v1/login`,
+  procurementUrl: `${BASE_URL}/api/backend/chromeExtension/v1/procurement`,
+  // ...
+};
+```
 
-## 📈 Производительность
+**Константы конфигурации:**
+- `BASE_URL` - базовый адрес бэкенда для централизованного управления окружением
+- `API_PATH` - общий путь к API endpoints для упрощения изменения структуры API
 
-- Service Worker не блокирует UI
-- Асинхронная обработка запросов
-- Кэширование токенов
-- Оптимизированные DOM селекторы
+Все API endpoints формируются относительно этих констант, что упрощает смену окружения (dev/staging/prod) и структуры API.
+
+## 🔧 Архитектура
+
+### Компоненты
+
+1. **Background Script** (`background.js`) - обработка сообщений и API запросов
+2. **Popup** (`popup.js`) - интерфейс авторизации и управления
+3. **Content Script** (`application.js`) - парсинг страниц закупок
+4. **API** (`api.js`) - взаимодействие с сервером
+5. **Storage** (`localStorage.js`) - работа с локальным хранилищем
+
+### Поток данных
+
+```
+Content Script → Background Script → API → Server
+     ↓              ↓
+Popup ← Background Script ← API Response
+```
+
+## 🎯 Функциональность
+
+### Авторизация
+- QR-код для подключения к Telegram боту
+- Проверка токена авторизации
+- Сохранение состояния авторизации
+
+### Парсинг закупок
+- Поддержка 44-ФЗ и 223-ФЗ
+- Автоматическое определение типа закупки
+- Извлечение всех необходимых данных
+
+### Управление статусами
+- Исключение отмененных закупок
+- Настраиваемый список статусов исключения
+- Импорт/экспорт конфигурации
 
 ## 🐛 Отладка
 
-1. **Popup не открывается**: проверьте manifest.json и popup.html
-2. **Кнопка не появляется**: проверьте авторизацию и content script
-3. **Ошибки API**: проверьте логи в background script
-4. **Парсинг не работает**: проверьте селекторы в application.js
+### Логирование
+Все компоненты используют консольное логирование с эмодзи для легкой идентификации:
 
-## 📝 TODO
+- 🔐 - Авторизация
+- 📦 - Закупки
+- 🌐 - API запросы
+- 💾 - Хранилище
+- 🔧 - Утилиты
 
-- [ ] Добавить иконки расширения
-- [ ] Реализовать retry механизм
-- [ ] Добавить offline поддержку
-- [ ] Написать unit тесты
-- [ ] Добавить TypeScript
-- [ ] Улучшить error handling
-- [ ] Добавить analytics
-- [ ] Оптимизировать bundle size 
+### Chrome DevTools
+- **Background Script**: `chrome://extensions/` → Найти расширение → "Проверить представления"
+- **Content Script**: DevTools на странице закупки
+- **Popup**: Правый клик на иконке расширения → "Проверить"
+
+## 📦 Сборка для продакшена
+
+```bash
+# Очистка и сборка
+npm run clean
+npm run build
+
+# Папка dist/ готова для загрузки в Chrome Web Store
+```
+
+## 🔧 Процесс сборки
+
+Система сборки автоматически:
+
+1. **Копирует статические ресурсы** из `extension/` в `dist/`
+2. **Объединяет JavaScript модули** в единые файлы
+3. **Удаляет import/export** для совместимости с Chrome
+4. **Обновляет manifest.json** для использования собранных файлов
+
+### Результат сборки:
+- `background-bundled.js` - объединенный background script
+- `application-bundled.js` - объединенный content script  
+- `popup.js` - объединенный popup с зависимостями
+- Все статические ресурсы (HTML, CSS, иконки)
+
+## 📚 Дополнительные возможности
+
+### Новые функции
+Добавьте новые функции в соответствующие файлы `src/`:
+
+```javascript
+// src/api.js
+export async function newApiFunction() {
+  // ваш код
+}
+
+// src/config.js
+export const NEW_CONSTANTS = {
+  feature: "value"
+};
+```
+
+### Обновление статусов исключений
+Используйте консоль браузера на странице zakupki.gov.ru:
+
+```javascript
+// Добавить новый статус исключения
+procurementStatusManager.addStatus("Новый статус");
+
+// Показать все статусы
+procurementStatusManager.showStatuses();
+
+// Экспорт конфигурации
+const config = procurementStatusManager.exportConfig();
+```
+
+## 🤝 Вклад в проект
+
+1. Создайте ветку для новой функции
+2. Внесите изменения в JavaScript файлы в папке `src/`
+3. Проверьте сборку: `npm run build`
+4. Протестируйте функциональность в Chrome
+5. Создайте Pull Request
+
+## 📄 Лицензия
+
+MIT License 
