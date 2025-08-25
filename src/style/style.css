@@ -1,0 +1,153 @@
+html,
+body {
+    font-family: 'Open Sans', sans-serif;
+    font-size: 18px;
+    vertical-align: text-bottom;
+    margin: 0;
+    min-height: 100px;
+    padding: 0;
+    width: 380px;
+    background-color: #fdfdfd;
+}
+
+.container-main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    align-content: center;
+    justify-content: center;
+}
+
+a:link,
+a:visited {
+    color: #000000;
+    outline: 0;
+    text-decoration: none;
+}
+
+h1 {
+    font-family: 'Menlo', monospace;
+    font-size: 22px;
+    font-weight: 400;
+    margin: 0;
+    color: #2f5876;
+}
+
+.logo_text {
+    display: block;
+    text-align: center;
+}
+
+.description {
+    margin: 5%;
+}
+
+.tg_number {
+    margin: 5%;
+    display: block;
+    text-align: center;
+}
+
+.tg_number button {
+    margin-top: 5%;
+}
+
+.description a {
+    color: #0066cc;
+    text-decoration: none;
+}
+
+.description a:hover {
+    text-decoration: underline;
+    color: #0052a3;
+}
+
+.qr-code-container {
+    display: flex;
+    justify-content: center;
+    margin: 10px 0;
+}
+
+.qr-code-container a {
+    transition: transform 0.2s ease;
+}
+
+.qr-code-container a:hover {
+    transform: scale(1.02);
+}
+
+/* Классы для замены inline стилей */
+.procurement-link {
+    color: #0066cc;
+    text-decoration: underline;
+    font-weight: 500;
+}
+
+.qr-fallback {
+    width: 148px;
+    height: 148px;
+    border: 1px solid #ccc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.qr-fallback-link {
+    display: block;
+    width: 148px;
+    height: 148px;
+    border: 1px solid #ccc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: #0066cc;
+    cursor: pointer;
+}
+
+.notification-title {
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.notification-message {
+    opacity: 0.9;
+    font-size: 13px;
+}
+
+.notification-close {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    font-size: 18px;
+    opacity: 0.7;
+    cursor: pointer;
+}
+
+.success-title {
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.success-message {
+    opacity: 0.9;
+    font-size: 13px;
+    margin-bottom: 12px;
+}
+
+.success-button {
+    display: inline-block;
+    padding: 8px 16px;
+    background-color: #28a745;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: background-color 0.2s;
+}
+
+.success-button:hover {
+    background-color: #218838;
+    color: white;
+    text-decoration: none;
+}

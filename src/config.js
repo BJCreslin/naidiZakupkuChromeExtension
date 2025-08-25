@@ -1,11 +1,18 @@
+//const BASE_URL = "https://naidizakupku.ru";
+//const API_PATH = "/api/backend/api";
+
+const BASE_URL = "http://localhost:9000";
+const API_PATH = "/api";
+
 export const CONFIG = {
-    serverUrl: "https://naidizakupku.ru/",
-    healthCheckUrl: "https://naidizakupku.ru/api/backend/api/health",
-    loginUrl: "https://naidizakupku.ru/api/backend/api/v1/login",
-    procurementUrl: "https://naidizakupku.ru/api/backend/chromeExtension/v1/procurement",
-    verifyTokenUrl: "https://naidizakupku.ru/api/backend/v1/verify-token",
+    baseUrl: BASE_URL,
+    serverUrl: `${BASE_URL}/`,
+    healthCheckUrl: `${BASE_URL}${API_PATH}/health`,
+    loginUrl: `${BASE_URL}${API_PATH}/login`,
+    procurementUrl: `${BASE_URL}${API_PATH}/procurement`,
+    verifyTokenUrl: `${BASE_URL}${API_PATH}/verify-token`,
     telegramBotUrl: "https://t.me/mHelperTestTgBot",
-    telegramBotInfoUrl: "https://naidizakupku.ru/api/backend/api/auth/telegram-bot/info"
+    telegramBotInfoUrl: `${BASE_URL}${API_PATH}/auth/telegram-bot/info`
 };
 export const NUMBER_REGEX = /^[0-9]+$/;
 export const MIN_CODE_VALUE = 1000;

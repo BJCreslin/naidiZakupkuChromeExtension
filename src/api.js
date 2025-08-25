@@ -43,21 +43,30 @@ export async function verifyToken() {
             status: response.status,
             statusText: response.statusText
         });
+        
+        // Если сервер отвечает 401, токен точно недействителен
         if (response.status === 401) {
-            console.warn('🔐 Токен недействителен, удаляем его');
+            console.warn('🔐 Токен недействителен (401), удаляем его');
             await removeToken();
             return false;
         }
-        if (!response.ok) {
-            console.warn('🔐 Ошибка при проверке токена:', response.statusText);
-            return false;
+        
+        // Если сервер отвечает успешно, токен валиден
+        if (response.ok) {
+            console.log('🔐 Токен валиден');
+            return true;
         }
-        console.log('🔐 Токен валиден');
+        
+        // Для других ошибок (500, 502, etc.) не удаляем токен,
+        // так как это могут быть временные проблемы сервера
+        console.warn('🔐 Ошибка сервера при проверке токена:', response.statusText);
+        console.log('🔐 Сохраняем токен, предполагаем что он валиден');
         return true;
     }
     catch (error) {
-        console.error('🔐 Ошибка при проверке токена:', error);
+        console.error('🔐 Ошибка сети при проверке токена:', error);
         // Если сервер недоступен, но токен есть, предполагаем что он валиден
+        console.log('🔐 Сохраняем токен, предполагаем что он валиден');
         return true;
     }
 }

@@ -5,20 +5,24 @@ import { STORAGE_KEYS } from './config';
  */
 export async function saveToken(data) {
     try {
-        console.log('💾 Сохраняем токен в localStorage');
+        console.log('💾 Сохраняем токен в localStorage, данные:', data);
         let token;
         let userData;
         if (typeof data === 'string') {
             token = data;
+            console.log('💾 Токен как строка:', token);
         }
         else {
             token = data.token;
             userData = data.user;
+            console.log('💾 Токен из объекта:', token);
+            console.log('💾 Данные пользователя:', userData);
         }
         const storageData = {
-            token,
-            ...(userData && { user: userData })
+            [STORAGE_KEYS.TOKEN]: token,
+            ...(userData && { [STORAGE_KEYS.USER]: userData })
         };
+        console.log('💾 Данные для сохранения:', storageData);
         await chrome.storage.local.set(storageData);
         console.log('💾 Токен успешно сохранен');
     }
@@ -35,9 +39,11 @@ export async function getToken() {
     try {
         console.log('💾 Получаем токен из localStorage');
         const result = await chrome.storage.local.get(STORAGE_KEYS.TOKEN);
+        console.log('💾 Результат запроса:', result);
         const token = result[STORAGE_KEYS.TOKEN];
+        console.log('💾 Извлеченный токен:', token);
         if (token) {
-            console.log('💾 Токен найден');
+            console.log('💾 Токен найден, длина:', token.length);
             return token;
         }
         else {

@@ -6,7 +6,7 @@
   "scripts": {
     "build": "npm run copy-assets && npm run bundle",
     "bundle": "node scripts/bundle.js",
-    "copy-assets": "xcopy /E /I extension\\icons dist\\icons && copy extension\\popup.html dist\\ && copy extension\\qrcode.min.js dist\\ && copy extension\\manifest.json dist\\ && xcopy /E /I extension\\style dist\\style",
+    "copy-assets": "xcopy /E /I src\\icons dist\\icons && copy src\\popup.html dist\\ && copy src\\qrcode.min.js dist\\ && copy src\\manifest.json dist\\ && xcopy /E /I src\\style dist\\style",
     "dev": "npm run build",
     "clean": "if exist dist rmdir /s /q dist",
     "start": "node scripts/dev.js"

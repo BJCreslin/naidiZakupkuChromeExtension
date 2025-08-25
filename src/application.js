@@ -355,16 +355,7 @@ function showSuccessNotificationWithLink(procurementNumber) {
     <div style="opacity: 0.9; font-size: 13px; margin-bottom: 12px;">Номер закупки: ${procurementNumber}</div>
     <a href="https://zakupki.gov.ru/epz/order/extendedsearch/results.html" 
        target="_blank" 
-       style="display: inline-block; 
-              background: rgba(255,255,255,0.2); 
-              color: white; 
-              text-decoration: none; 
-              padding: 8px 12px; 
-              border-radius: 4px; 
-              font-size: 12px; 
-              font-weight: 500; 
-              border: 1px solid rgba(255,255,255,0.3);
-              transition: all 0.2s ease;">
+       style="display: inline-block; background: rgba(255,255,255,0.2); color: white; text-decoration: none; padding: 8px 12px; border-radius: 4px; font-size: 12px; font-weight: 500; border: 1px solid rgba(255,255,255,0.3); transition: all 0.2s ease;">
       🔍 Поиск закупок
     </a>
     <div style="position: absolute; top: 8px; right: 12px; font-size: 18px; opacity: 0.7; cursor: pointer;">×</div>

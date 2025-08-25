@@ -18,14 +18,13 @@
 
 ```
 naidiZakupkuChromeExtension/
-├── src/                    # JavaScript исходники
+├── src/                    # Исходный код (ES6 модули)
 │   ├── config.js          # Конфигурация и константы
 │   ├── localStorage.js    # Работа с хранилищем
 │   ├── api.js            # API запросы
 │   ├── background.js     # Background script
 │   ├── popup.js          # Popup интерфейс
-│   └── application.js    # Content script
-├── extension/             # Статические ресурсы
+│   ├── application.js    # Content script
 │   ├── icons/            # Иконки расширения
 │   ├── style/            # CSS стили
 │   ├── popup.html        # HTML popup

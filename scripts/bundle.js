@@ -42,14 +42,27 @@ function bundleModules() {
   
   console.log('✅ Bundled background script created: background-bundled.js');
   
-  // Create bundled content script (only application.js)
-  const applicationContent = fs.readFileSync(path.join(srcPath, 'application.js'), 'utf8')
-    .replace(/import\s+.*?from\s+['"][^'"]+['"];?\n?/g, '')
-    .replace(/export\s+/g, '')
-    .replace(/\/\/# sourceMappingURL=.*$/gm, '');
+  // Create bundled content script with dependencies
+  const applicationModules = {
+    'config.js': fs.readFileSync(path.join(srcPath, 'config.js'), 'utf8'),
+    'application.js': fs.readFileSync(path.join(srcPath, 'application.js'), 'utf8')
+  };
+  
+  let bundledApplicationContent = '';
+  
+  // Add each module's content (excluding import/export statements)
+  for (const [moduleName, content] of Object.entries(applicationModules)) {
+    // Remove import statements and export keywords, keep the actual code
+    let processedContent = content
+      .replace(/import\s+.*?from\s+['"][^'"]+['"];?\n?/g, '')
+      .replace(/export\s+/g, '')
+      .replace(/\/\/# sourceMappingURL=.*$/gm, '');
+    
+    bundledApplicationContent += `// ${moduleName}\n${processedContent}\n\n`;
+  }
   
   const bundledApplicationPath = path.join(distPath, 'application-bundled.js');
-  fs.writeFileSync(bundledApplicationPath, `// application.js\n${applicationContent}`);
+  fs.writeFileSync(bundledApplicationPath, bundledApplicationContent);
   
   console.log('✅ Bundled content script created: application-bundled.js');
   

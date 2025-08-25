@@ -66,7 +66,7 @@ function showAuthorizedState() {
         authMessage.className = 'alert alert-success mt-3';
         authMessage.innerHTML = `
       <h5>✅ ${SUCCESS_MESSAGES.AUTHORIZED}</h5>
-      <p>Расширение готово к работе. <a href="https://zakupki.gov.ru/epz/order/extendedsearch/results.html" target="_blank" rel="noopener" style="color: #0066cc; text-decoration: underline; font-weight: 500;">Переходите на сайт закупок</a> для сохранения данных.</p>
+      <p>Расширение готово к работе. <a href="https://zakupki.gov.ru/epz/order/extendedsearch/results.html" target="_blank" rel="noopener" class="procurement-link">Переходите на сайт закупок</a> для сохранения данных.</p>
       <button type="button" class="btn btn-outline-danger btn-sm" id="logout-btn">Выйти</button>
     `;
         // Вставляем после описания
@@ -159,14 +159,14 @@ async function generateQRCode() {
         else {
             console.warn('📱 QRCode library не загружена');
             // Показываем fallback текст
-            qrContainer.innerHTML = '<div style="width: 148px; height: 148px; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center;">QR код недоступен</div>';
+            qrContainer.innerHTML = '<div class="qr-fallback">QR код недоступен</div>';
         }
     }
     catch (error) {
         console.error('📱 Ошибка генерации QR кода:', error);
         const qrContainer = document.getElementById('qr-code');
         if (qrContainer) {
-            qrContainer.innerHTML = '<div style="width: 148px; height: 148px; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center;">QR код недоступен</div>';
+            qrContainer.innerHTML = '<div class="qr-fallback">QR код недоступен</div>';
         }
     }
 }

@@ -11,7 +11,7 @@
     "https://naidizakupku.ru/*"
   ],
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'; style-src 'self' https://cdn.jsdelivr.net https://fonts.googleapis.com;"
+    "extension_pages": "script-src 'self'; object-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com;"
   },
   "background": {
     "service_worker": "background-bundled.js"
